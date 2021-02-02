@@ -8,14 +8,14 @@
 </head>
 <body>
 	<div class="container">
+		<h1>Canvas Token Generator</h1>
 		<div class="examples">
-			<div id="token1" class="example">
+			<div class="example">
+				<h2>传入CSS选择器作为第一个参数</h2>
 				<div class="description">
-					<h2 class="title">传入CSS选择器作为第一个参数</h2>
 				</div>
 				<div class="token">
-					<div class="canvas"></div>
-					<div class="btn">&nbsp;</div>
+					<div id="token1" class="canvas"></div>
 				</div>
 			</div>
 		</div>
@@ -23,10 +23,7 @@
 </body>
 <script type="text/javascript">
 window.onload = function () {
-	var generator1 = new CanvasTokenGenerator('#token1 .canvas', {
-
-	});
-	generator1.draw();
+	new CanvasTokenGenerator('#token1').draw();
 };
 </script>
 </html>
