@@ -1,16 +1,24 @@
-
-
+/**
+ * CanvasTokenGenerator v1.0.0
+ * @param {Element, string} el      Either a query selector or an HTML element
+ * @param {object}          options JSON formatted object
+ * @constructor
+ */
 function CanvasTokenGenerator (el, options) {
 	this.canvas = document.createElement('canvas');
 	this.settings = {
 		chars: '',
+		customChars: '',
+		excludedChars: '',
 		lowercase: 'abcdefghijklmnopqrstuvwxyz',
-		max: 6,
+		max: 5,
+		maxDots: 100,
+		maxLines: 20,
 		min: 4,
 		number: '0123456789',
 		uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-		userInterferingDots: false,
-		userInterferingLines: false
+		userInterferingDots: true,
+		userInterferingLines: true
 	};
 	this.token = '';
 	this.container = null;
@@ -101,12 +109,27 @@ CanvasTokenGenerator.prototype.constructor = function (options) {
 		for (var key in options) {
 			var value = options[key];
 			switch (key) {
+				case 'customChars':
+					if (typeof value === 'string') this.settings.chars += value;
+					break;
+				case 'excludedChars':
+					if (typeof value === 'string') this.settings.excludedChars = value;
+					break;
 				case 'lowercase':
 				case 'number':
 				case 'uppercase':
-					if (typeof value === 'string') this.settings[key] = value.replace(/\s+/g, '');
+					if (typeof value === 'string') {
+						this.settings[key] = value.replace(/\s+/g, '')
+							.toLowerCase()
+							.split('')
+							.reduce(function (accum, each) {
+								return accum.indexOf(each) === -1 ? accum + each : accum;
+							});
+					}
 					break;
 				case 'max':
+				case 'maxDots':
+				case 'maxLines':
 				case 'min':
 					if (parseInt(value) > 0) this.settings[key] = parseInt(value);
 					break;
@@ -114,8 +137,18 @@ CanvasTokenGenerator.prototype.constructor = function (options) {
 		}
 	}
 
-	this.settings.chars = this.settings.lowercase + this.settings.number + this.settings.uppercase;
-	if (!this.settings.chars.length) throw new Error('No characters available after adapting the options');
+	var chars = this.settings.chars + this.settings.lowercase + this.settings.number + this.settings.uppercase;
+
+	if (this.settings.excludedChars) {
+		this.settings.excludedChars.split('').forEach(function (char) {
+			var regex = new RegExp(char, 'gi');
+			chars = chars.replace(regex, '');
+		});
+	}
+
+	if (!chars.length) throw new Error('No characters available after adapting the options');
+	this.settings.chars = chars;
+	return this;
 };
 
 CanvasTokenGenerator.prototype.draw = function () {
@@ -199,16 +232,20 @@ CanvasTokenGenerator.prototype.draw = function () {
 		height = this.canvas.height,
 		i,
 		token = make(this.settings.chars, this.settings.min, this.settings.max),
-		width = this.canvas.width;
+		width = this.canvas.width,
+		font_size = Math.floor(width / (token.length * 3 / 2 + .5)),
+		padding = font_size / 2,
+		last_x = random(padding, padding * .5);
 
-	ctx.textBaseline = 'bottom';
+	if (font_size > height * .5) font_size = height * .5;
+
+	ctx.textBaseline = 'center';
 
 	// Get a random color
 	ctx.fillStyle = color();
 
 	// Render the rectangle with the random color
-	ctx.fillRect(0,0, width, height);
-	console.log(ctx.fillStyle);
+	ctx.fillRect(0,0, this.canvas.width, this.canvas.height);
 
 	// Draw text
 	for (i = 0; i < token.length; i ++) {
@@ -216,13 +253,13 @@ CanvasTokenGenerator.prototype.draw = function () {
 		ctx.fillStyle = color(bg_color);
 
 		// Random font
-		ctx.font = random(height * .6, height * .9) + 'px ' + fonts[random(0, fonts.length)];
-		console.log(token[i], ctx.font);
+		ctx.font = random(font_size * .9, font_size * 1.1) + 'px ' + fonts[random(0, fonts.length)];
 
-		var x = random(width / token.length / 2, width / token.length / 1.5) + i * random(width / token.length * .5, width / token.length * .8), // Random position x
-			y = random(height * .4, height * .6), // Random position y
+		var x = random(last_x + padding / 2, last_x + padding), // Random position x
+			y = random(font_size, height - padding), // Random position y
 			deg = random(-20, 20); // Random rotation
-		console.log(x, y);
+
+		last_x = x + font_size;
 
 		// Set position
 		ctx.translate(x, y);
@@ -242,18 +279,21 @@ CanvasTokenGenerator.prototype.draw = function () {
 
 	// Draw interfering lines
 	if (this.settings.userInterferingLines) {
-		for (i = 0; i < random(4, 8); i++) {
-			ctx.strokeStyle = color(40, 180); // Line color
+		for (i = 0; i < random(this.settings.maxLines * .5, this.settings.maxLines); i++) {
+			var line_length = random(width * .5, width),
+				line_x = random(width * -.5, width * 1.5),
+				line_y = random(height * -.5, height * 1.5);
+			ctx.strokeStyle = color(); // Line color
 			ctx.beginPath();
-			ctx.moveTo(random(0, width), random(0, height));
-			ctx.lineTo(random(0, width), random(0, height));
+			ctx.moveTo(line_x, line_y);
+			ctx.lineTo(random(line_x, line_length), random(line_y, line_length));
 			ctx.stroke();
 		}
 	}
 
 	// Draw interfering dots
 	if (this.settings.userInterferingDots) {
-		for (i = 0; i < random(20, 100); i++) {
+		for (i = 0; i < random(this.settings.maxDots * .5, this.settings.maxDots); i++) {
 			ctx.fillStyle = color();
 			ctx.beginPath();
 			ctx.arc(random(0, width), random(0, height), 1, 0, 2 * Math.PI);
