@@ -3,6 +3,16 @@ A token generator in HTML using canvas
 
 *Other languages: [简体中文](https://github.com/unicornboat/canvan-token-generator/blob/main/README.zh-cn.md)*
 
+## Download
+
+Download from [Github Releases](https://github.com/unicornboat/canvan-token-generator/releases).
+
+## Installation
+
+```html
+<script src="canvas-token-generator-1.0.0.min.js"></script>
+```
+
 ## Parameters
 
 |Name    |Type           |Description                   |Required |
@@ -135,28 +145,6 @@ If `true` certain amount of interfering dots will be drawn.
 > Default: true
 
 If `true` certain amount of interfering lines will be drawn.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 [example-customChars]: https://github.com/unicornboat/canvan-token-generator/blob/main/demo/img/examples/example-customChars.png?raw=true "Option: customChars"
 [example-excludedChars]: https://github.com/unicornboat/canvan-token-generator/blob/main/demo/img/examples/example-excludedChars.png?raw=true "Option: excludedChars"
